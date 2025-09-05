@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Mi App de Finanzas</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <header>
+    <h1>Mi App de Finanzas</h1>
+  </header>
+
+  <div class="container">
+    <h2>Agregar Movimiento</h2>
+    <form id="form">
+      <input type="text" id="descripcion" placeholder="Descripción" required>
+      <input type="number" id="monto" placeholder="Monto" required>
+      <select id="tipo">
+        <option value="ingreso">Ingreso</option>
+        <option value="gasto">Gasto</option>
+      </select>
+      <select id="categoria">
+        <option value="General">General</option>
+        <option value="Comida">Comida</option>
+        <option value="Transporte">Transporte</option>
+        <option value="Ocio">Ocio</option>
+        <option value="Salud">Salud</option>
+      </select>
+      <button type="submit">Agregar</button>
+    </form>
+
+    <div class="balance">
+      Saldo Actual: $<span id="saldo">0</span>
+    </div>
+
+    <h2>Movimientos</h2>
+    <ul id="lista"></ul>
+  </div>
+
+  <!-- Tu JS -->
+  <script src="script.js"></script>
+</body>
+</html>
