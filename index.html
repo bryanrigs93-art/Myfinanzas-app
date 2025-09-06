@@ -3,14 +3,13 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Mi App de Finanzas</title>
+  <title>Mi app de Finanzas</title>
   <link rel="stylesheet" href="styles.css">
-  <!-- ✅ Librería Flatpickr -->
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
 </head>
 <body>
   <header>
-    <h1>Mi App de Finanzas</h1>
+    <h1>Mi app de Finanzas</h1>
   </header>
 
   <div class="container">
@@ -36,17 +35,16 @@
       Saldo Actual: $<span id="saldo">0</span>
     </div>
 
-    <!-- ✅ Filtro de rango con botón -->
     <h2>Filtrar por rango de fechas</h2>
-    <button type="button" id="btn-fecha" class="calendar-btn">📅 Seleccionar rango</button>
+    <input type="text" id="filtro-fecha" placeholder="Selecciona un rango de fechas">
 
     <h2>Movimientos</h2>
     <ul id="lista"></ul>
   </div>
 
-  <!-- Tu JS -->
-  <script src="script.js"></script>
-  <!-- ✅ Librería Flatpickr -->
+  <!-- 1) Flatpickr primero -->
   <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+  <!-- 2) Tu JS después -->
+  <script src="script.js"></script>
 </body>
 </html>
