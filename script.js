@@ -43,7 +43,6 @@ function crearMovimiento(item) {
     saldoEl.textContent = fmt(saldo);
     li.remove();
 
-    // ✅ Solo mandar eliminar, sin duplicar
     fetch(API_URL, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -58,7 +57,6 @@ function crearMovimiento(item) {
     }).catch(err => console.error("❌ Error eliminando:", err));
   });
 
-  // ✅ Mostrar siempre arriba
   lista.prepend(li);
 }
 
@@ -105,7 +103,6 @@ form.addEventListener("submit", (e) => {
   saldo = tipoMov === "ingreso" ? saldo + amount : saldo - amount;
   saldoEl.textContent = fmt(saldo);
 
-  // ✅ Solo guardar, sin interferir con eliminar
   fetch(API_URL, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
@@ -135,13 +132,11 @@ if (filtroFecha) {
   });
 }
 
-// Mostrar todo
 function mostrarTodo() {
   const items = lista.querySelectorAll("li");
   items.forEach(li => li.style.display = "flex");
 }
 
-// Filtrar por rango
 function filtrarPorRango(fechaInicio, fechaFin) {
   const items = lista.querySelectorAll("li");
   items.forEach(li => {
