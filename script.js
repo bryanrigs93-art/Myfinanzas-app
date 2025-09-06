@@ -7,15 +7,14 @@ const lista = document.getElementById("lista");
 const saldoEl = document.getElementById("saldo");
 const filtroFecha = document.getElementById("filtro-fecha");
 
-// ✅ Tu Web App (Apps Script)
+// 👉 Pega aquí tu URL de Apps Script publicada
 const API_URL = "https://script.google.com/macros/s/AKfycbyPkz8A_cX-7G6m6sA5yqXTAmd1ci8xAxQ3A2zWjbDLmfWIJRwne16oXWZCE4cH9cbu/exec";
 
-// Proxy para GET (lectura de datos con CORS)
+// Proxy para GET
 const GET_PROXY = "https://api.allorigins.win/raw?url=";
 
 let saldo = 0;
 
-// Utilidades
 const fmt = (n) => Number(n).toFixed(2);
 const parseMonto = (v) => parseFloat(String(v).replace(",", "."));
 const escapeHtml = (str) =>
@@ -23,7 +22,6 @@ const escapeHtml = (str) =>
     "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#039;"
   }[m]));
 
-// Crear movimiento en UI con botón eliminar
 function crearMovimiento(item) {
   const amount = parseMonto(item.monto);
 
@@ -37,7 +35,6 @@ function crearMovimiento(item) {
     </span>
   `;
 
-  // Botón eliminar
   li.querySelector(".eliminar").addEventListener("click", () => {
     saldo = item.tipo === "ingreso" ? saldo - amount : saldo + amount;
     saldoEl.textContent = fmt(saldo);
@@ -60,7 +57,7 @@ function crearMovimiento(item) {
   lista.prepend(li);
 }
 
-// --- Cargar datos existentes ---
+// --- Cargar datos ---
 window.addEventListener("DOMContentLoaded", () => {
   fetch(GET_PROXY + encodeURIComponent(API_URL))
     .then(r => r.text())
@@ -80,7 +77,7 @@ window.addEventListener("DOMContentLoaded", () => {
     .catch(err => console.error("⚠️ Error cargando datos:", err));
 });
 
-// --- Guardar movimiento ---
+// --- Guardar ---
 form.addEventListener("submit", (e) => {
   e.preventDefault();
 
@@ -94,9 +91,7 @@ form.addEventListener("submit", (e) => {
     return;
   }
 
-  // ✅ Fecha automática (dd/MM/yyyy)
   const fecha = new Date().toLocaleDateString("es-ES");
-
   const item = { fecha, descripcion: desc, monto: amount, categoria: cat, tipo: tipoMov };
   crearMovimiento(item);
 
@@ -115,7 +110,7 @@ form.addEventListener("submit", (e) => {
   categoria.value = "General";
 });
 
-// --- Filtro con calendario (Flatpickr en modo rango) ---
+// --- Filtro Flatpickr ---
 if (filtroFecha) {
   flatpickr(filtroFecha, {
     mode: "range",
@@ -148,11 +143,7 @@ function filtrarPorRango(fechaInicio, fechaFin) {
       const partes = match[1].split("/");
       const fechaItem = new Date(partes[2], partes[1] - 1, partes[0]);
 
-      if (fechaItem >= fechaInicio && fechaItem <= fechaFin) {
-        li.style.display = "flex";
-      } else {
-        li.style.display = "none";
-      }
+      li.style.display = (fechaItem >= fechaInicio && fechaItem <= fechaFin) ? "flex" : "none";
     }
   });
 }
