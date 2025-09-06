@@ -14,6 +14,54 @@ const GET_PROXY = "https://api.allorigins.win/raw?url=";
 
 let saldo = 0;
 
+// Utilidades
+const fmt = (n) => Number(n).toFixed(2);
+const parseMonto = (v) => parseFloat(String(v).replace(",", "."));
+const escapeHtml = (str) =>
+  String(str).replace(/[&<>"']/g, (m) => ({
+    "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#039;"
+  }[m]));
+
+// Crear y pintar un <li> con botón eliminar
+function crearMovimiento(item) {
+  const amount = parseMonto(item.monto);
+
+  const li = document.createElement("li");
+  li.classList.add(item.tipo);
+  li.innerHTML = `
+    <span>${escapeHtml(item.descripcion)} (${escapeHtml(item.categoria)})</span>
+    <span>
+      ${item.tipo === "ingreso" ? "+" : "-"}$${fmt(amount)}
+      <button class="eliminar" aria-label="Eliminar movimiento">❌</button>
+    </span>
+  `;
+
+  // Eliminar (UI + Sheets)
+  li.querySelector(".eliminar").addEventListener("click", () => {
+    // Actualizar saldo en UI
+    saldo = item.tipo === "ingreso" ? saldo - amount : saldo + amount;
+    saldoEl.textContent = fmt(saldo);
+
+    // Quitar de la lista
+    li.remove();
+
+    // Notificar a Google Sheets (no-cors: no podremos leer respuesta)
+    fetch(API_URL, {
+      method: "POST",
+      mode: "no-cors",
+      body: JSON.stringify({
+        accion: "eliminar",
+        descripcion: item.descripcion,
+        monto: amount,
+        categoria: item.categoria,
+        tipo: item.tipo
+      })
+    }).catch(err => console.error("❌ Error eliminando:", err));
+  });
+
+  lista.appendChild(li);
+}
+
 // --- Cargar datos existentes ---
 window.addEventListener("DOMContentLoaded", () => {
   fetch(GET_PROXY + encodeURIComponent(API_URL))
@@ -24,20 +72,15 @@ window.addEventListener("DOMContentLoaded", () => {
       saldo = 0;
 
       data.forEach(item => {
-        const li = document.createElement("li");
-        li.classList.add(item.tipo);
-        li.innerHTML = `
-          <span>${item.descripcion} (${item.categoria})</span>
-          <span>${item.tipo === "ingreso" ? "+" : "-"}$${item.monto}</span>
-        `;
-        lista.appendChild(li);
+        const amount = parseMonto(item.monto);
+        crearMovimiento(item);
 
         saldo = item.tipo === "ingreso"
-          ? saldo + parseFloat(item.monto)
-          : saldo - parseFloat(item.monto);
+          ? saldo + amount
+          : saldo - amount;
       });
 
-      saldoEl.textContent = saldo.toFixed(2);
+      saldoEl.textContent = fmt(saldo);
     })
     .catch(err => console.error("⚠️ Error cargando datos:", err));
 });
@@ -47,43 +90,10 @@ form.addEventListener("submit", (e) => {
   e.preventDefault();
 
   const desc = descripcion.value.trim();
-  const amount = parseFloat(monto.value);
+  const amount = parseMonto(monto.value);
   const tipoMov = tipo.value;
   const cat = categoria.value;
 
   if (!desc || isNaN(amount) || amount <= 0) {
     alert("Ingresa una descripción y un monto válidos");
-    return;
-  }
-
-  // Pintar en UI
-  const li = document.createElement("li");
-  li.classList.add(tipoMov);
-  li.innerHTML = `
-    <span>${desc} (${cat})</span>
-    <span>${tipoMov === "ingreso" ? "+" : "-"}$${amount}</span>
-  `;
-  lista.appendChild(li);
-
-  saldo = tipoMov === "ingreso" ? saldo + amount : saldo - amount;
-  saldoEl.textContent = saldo.toFixed(2);
-
-  // Enviar a Sheets con no-cors (no podremos leer la respuesta, pero se guarda)
-  fetch(API_URL, {
-    method: "POST",
-    mode: "no-cors",
-    body: JSON.stringify({
-      descripcion: desc,
-      monto: amount,
-      categoria: cat,
-      tipo: tipoMov
-    })
-  }).catch(err => console.error("❌ Error al guardar:", err));
-
-  // Reset form
-  descripcion.value = "";
-  monto.value = "";
-  tipo.value = "ingreso";
-  categoria.value = "General";
-});
 
