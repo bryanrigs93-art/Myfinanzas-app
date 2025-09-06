@@ -5,17 +5,18 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Tienda Don Raúl</title>
   <link rel="stylesheet" href="styles.css">
+  <!-- ✅ Librería Flatpickr -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
 </head>
 <body>
   <header>
-    <h1>Tienda Don Raúl</h1>
+    <h1>Mi app de Finanzas</h1>
   </header>
 
   <div class="container">
     <h2>Agregar Movimiento</h2>
     <form id="form">
       <input type="text" id="descripcion" placeholder="Descripción" required>
-      <!-- ✅ ahora acepta decimales -->
       <input type="number" id="monto" placeholder="Monto" step="0.01" required>
       <select id="tipo">
         <option value="ingreso">Ingreso</option>
@@ -35,11 +36,17 @@
       Saldo Actual: $<span id="saldo">0</span>
     </div>
 
+    <!-- ✅ Filtro de rango de fechas -->
+    <h2>Filtrar por rango de fechas</h2>
+    <input type="text" id="filtro-fecha" placeholder="Selecciona un rango de fechas">
+
     <h2>Movimientos</h2>
     <ul id="lista"></ul>
   </div>
 
   <!-- Tu JS -->
   <script src="script.js"></script>
+  <!-- ✅ Librería Flatpickr -->
+  <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
 </body>
 </html>

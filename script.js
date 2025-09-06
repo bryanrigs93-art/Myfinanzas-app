@@ -5,6 +5,7 @@ const tipo = document.getElementById("tipo");
 const categoria = document.getElementById("categoria");
 const lista = document.getElementById("lista");
 const saldoEl = document.getElementById("saldo");
+const filtroFecha = document.getElementById("filtro-fecha"); // ✅ campo para Flatpickr
 
 // ✅ Tu Web App (Apps Script)
 const API_URL = "https://script.google.com/macros/s/AKfycbyPkz8A_cX-7G6m6sA5yqXTAmd1ci8xAxQ3A2zWjbDLmfWIJRwne16oXWZCE4cH9cbu/exec";
@@ -29,7 +30,7 @@ function crearMovimiento(item) {
   const li = document.createElement("li");
   li.classList.add(item.tipo);
   li.innerHTML = `
-    <span>${escapeHtml(item.descripcion)} (${escapeHtml(item.categoria)})</span>
+    <span>${escapeHtml(item.descripcion)} (${escapeHtml(item.categoria)}) - <small>${escapeHtml(item.fecha)}</small></span>
     <span>
       ${item.tipo === "ingreso" ? "+" : "-"}$${fmt(amount)}
       <button class="eliminar">❌</button>
@@ -47,6 +48,7 @@ function crearMovimiento(item) {
       mode: "no-cors",
       body: JSON.stringify({
         accion: "eliminar",
+        fecha: item.fecha,
         descripcion: item.descripcion,
         monto: amount,
         categoria: item.categoria,
@@ -92,7 +94,10 @@ form.addEventListener("submit", (e) => {
     return;
   }
 
-  const item = { descripcion: desc, monto: amount, categoria: cat, tipo: tipoMov };
+  // ✅ Fecha automática
+  const fecha = new Date().toLocaleDateString("es-ES");
+
+  const item = { fecha, descripcion: desc, monto: amount, categoria: cat, tipo: tipoMov };
   crearMovimiento(item);
 
   saldo = tipoMov === "ingreso" ? saldo + amount : saldo - amount;
@@ -109,3 +114,46 @@ form.addEventListener("submit", (e) => {
   tipo.value = "ingreso";
   categoria.value = "General";
 });
+
+// --- Filtro con calendario (Flatpickr en modo rango) ---
+if (filtroFecha) {
+  flatpickr(filtroFecha, {
+    mode: "range",
+    dateFormat: "d/m/Y",
+    allowInput: false,
+    onChange: function (selectedDates) {
+      if (selectedDates.length === 2) {
+        filtrarPorRango(selectedDates[0], selectedDates[1]);
+      } else {
+        mostrarTodo();
+      }
+    }
+  });
+}
+
+// Mostrar todo (cuando se borra el rango)
+function mostrarTodo() {
+  const items = lista.querySelectorAll("li");
+  items.forEach(li => li.style.display = "flex");
+}
+
+// Función de filtrado por rango
+function filtrarPorRango(fechaInicio, fechaFin) {
+  const items = lista.querySelectorAll("li");
+  items.forEach(li => {
+    const texto = li.querySelector("span").innerText;
+    const regex = /(\d{1,2}\/\d{1,2}\/\d{4})/;
+    const match = texto.match(regex);
+
+    if (match) {
+      const partes = match[1].split("/");
+      const fechaItem = new Date(partes[2], partes[1] - 1, partes[0]); // dd/mm/yyyy → Date
+
+      if (fechaItem >= fechaInicio && fechaItem <= fechaFin) {
+        li.style.display = "flex"; // dentro del rango
+      } else {
+        li.style.display = "none"; // fuera del rango
+      }
+    }
+  });
+}
