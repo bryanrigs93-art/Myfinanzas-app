@@ -8,7 +8,7 @@ const saldoEl = document.getElementById("saldo");
 const filtroFecha = document.getElementById("filtro-fecha"); // ✅ campo para Flatpickr
 
 // ✅ Tu Web App (Apps Script)
-const API_URL = "TU_URL_DEPLOY_DE_APPS_SCRIPT";
+const API_URL = "https://script.google.com/macros/s/AKfycbyPkz8A_cX-7G6m6sA5yqXTAmd1ci8xAxQ3A2zWjbDLmfWIJRwne16oXWZCE4cH9cbu/exec";
 
 // Proxy para GET (lectura de datos con CORS)
 const GET_PROXY = "https://api.allorigins.win/raw?url=";
