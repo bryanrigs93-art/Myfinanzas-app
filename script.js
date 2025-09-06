@@ -5,10 +5,10 @@ const tipo = document.getElementById("tipo");
 const categoria = document.getElementById("categoria");
 const lista = document.getElementById("lista");
 const saldoEl = document.getElementById("saldo");
-const btnFecha = document.getElementById("btn-fecha"); // ✅ botón de calendario
+const filtroFecha = document.getElementById("filtro-fecha"); // ✅ campo para Flatpickr
 
-// ✅ Tu Web App (Apps Script)
-const API_URL = "AQUÍ_VA_TU_URL_DE_GOOGLE_APPS_SCRIPT";
+// ✅ Tu Web App (Apps Script actualizado)
+const API_URL = "https://script.google.com/macros/s/AKfycbyPkz8A_cX-7G6m6sA5yqXTAmd1ci8xAxQ3A2zWjbDLmfWIJRwne16oXWZCE4cH9cbu/exec";
 
 // Proxy para GET (lectura de datos con CORS)
 const GET_PROXY = "https://api.allorigins.win/raw?url=";
@@ -57,7 +57,7 @@ function crearMovimiento(item) {
     }).catch(err => console.error("❌ Error eliminando:", err));
   });
 
-  // ✅ Mostrar más reciente arriba
+  // ✅ Mostrar siempre arriba
   lista.prepend(li);
 }
 
@@ -70,8 +70,8 @@ window.addEventListener("DOMContentLoaded", () => {
       lista.innerHTML = "";
       saldo = 0;
 
-      // ✅ Mostrar más recientes primero
-      data.reverse().forEach(item => {
+      // ✅ Ya vienen invertidos desde el backend
+      data.forEach(item => {
         const amount = parseMonto(item.monto);
         crearMovimiento(item);
         saldo = item.tipo === "ingreso" ? saldo + amount : saldo - amount;
@@ -118,20 +118,17 @@ form.addEventListener("submit", (e) => {
 });
 
 // --- Filtro con calendario (Flatpickr en modo rango) ---
-if (btnFecha) {
-  flatpickr(btnFecha, {
+if (filtroFecha) {
+  flatpickr(filtroFecha, {
     mode: "range",
     dateFormat: "d/m/Y",
-    allowInput: false,
+    allowInput: true,
     clickOpens: true,
     onChange: function (selectedDates) {
       if (selectedDates.length === 2) {
         filtrarPorRango(selectedDates[0], selectedDates[1]);
-        // ✅ Cambiar texto del botón al rango
-        btnFecha.textContent = "📅 " + selectedDates.map(d => d.toLocaleDateString("es-ES")).join(" - ");
       } else {
         mostrarTodo();
-        btnFecha.textContent = "📅 Seleccionar rango";
       }
     }
   });
