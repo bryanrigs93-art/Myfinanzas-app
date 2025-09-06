@@ -6,7 +6,7 @@ const categoria = document.getElementById("categoria");
 const lista = document.getElementById("lista");
 const saldoEl = document.getElementById("saldo");
 
-// ✅ Tu Web App
+// ✅ Tu Web App (Apps Script)
 const API_URL = "https://script.google.com/macros/s/AKfycbyPkz8A_cX-7G6m6sA5yqXTAmd1ci8xAxQ3A2zWjbDLmfWIJRwne16oXWZCE4cH9cbu/exec";
 
 // Proxy para GET (lectura de datos con CORS)
@@ -22,7 +22,7 @@ const escapeHtml = (str) =>
     "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#039;"
   }[m]));
 
-// Crear y pintar un <li> con botón eliminar
+// Crear movimiento en UI con botón eliminar
 function crearMovimiento(item) {
   const amount = parseMonto(item.monto);
 
@@ -32,20 +32,16 @@ function crearMovimiento(item) {
     <span>${escapeHtml(item.descripcion)} (${escapeHtml(item.categoria)})</span>
     <span>
       ${item.tipo === "ingreso" ? "+" : "-"}$${fmt(amount)}
-      <button class="eliminar" aria-label="Eliminar movimiento">❌</button>
+      <button class="eliminar">❌</button>
     </span>
   `;
 
-  // Eliminar (UI + Sheets)
+  // Botón eliminar
   li.querySelector(".eliminar").addEventListener("click", () => {
-    // Actualizar saldo en UI
     saldo = item.tipo === "ingreso" ? saldo - amount : saldo + amount;
     saldoEl.textContent = fmt(saldo);
-
-    // Quitar de la lista
     li.remove();
 
-    // Notificar a Google Sheets (no-cors: no podremos leer respuesta)
     fetch(API_URL, {
       method: "POST",
       mode: "no-cors",
@@ -74,10 +70,7 @@ window.addEventListener("DOMContentLoaded", () => {
       data.forEach(item => {
         const amount = parseMonto(item.monto);
         crearMovimiento(item);
-
-        saldo = item.tipo === "ingreso"
-          ? saldo + amount
-          : saldo - amount;
+        saldo = item.tipo === "ingreso" ? saldo + amount : saldo - amount;
       });
 
       saldoEl.textContent = fmt(saldo);
@@ -96,4 +89,23 @@ form.addEventListener("submit", (e) => {
 
   if (!desc || isNaN(amount) || amount <= 0) {
     alert("Ingresa una descripción y un monto válidos");
+    return;
+  }
 
+  const item = { descripcion: desc, monto: amount, categoria: cat, tipo: tipoMov };
+  crearMovimiento(item);
+
+  saldo = tipoMov === "ingreso" ? saldo + amount : saldo - amount;
+  saldoEl.textContent = fmt(saldo);
+
+  fetch(API_URL, {
+    method: "POST",
+    mode: "no-cors",
+    body: JSON.stringify(item)
+  }).catch(err => console.error("❌ Error al guardar:", err));
+
+  descripcion.value = "";
+  monto.value = "";
+  tipo.value = "ingreso";
+  categoria.value = "General";
+});

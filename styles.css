@@ -1,12 +1,66 @@
-body{font-family:Arial,sans-serif;background:#f4f7f9;margin:0;color:#333}
-header{background:#4CAF50;color:#fff;text-align:center;padding:1rem}
-.container{max-width:500px;margin:2rem auto;background:#fff;border-radius:10px;padding:1.5rem;box-shadow:0 4px 8px rgba(0,0,0,.1)}
-h2{margin-top:0}
-form input,form select,form button{width:100%;padding:.6rem;margin:.5rem 0;border-radius:5px;border:1px solid #ddd}
-form button{background:#4CAF50;color:#fff;border:none;cursor:pointer;font-weight:bold}
-form button:hover{background:#45a049}
-.balance{text-align:center;margin:1rem 0;font-size:1.2rem;font-weight:bold}
-ul{list-style:none;padding:0}
-li{background:#f9f9f9;margin:.5rem 0;padding:.7rem;border-left:5px solid;display:flex;justify-content:space-between}
-li.ingreso{border-color:#4CAF50}
-li.gasto{border-color:#f44336}
+body {
+  font-family: Arial, sans-serif;
+  background: #f4f7f9;
+  margin: 0;
+  color: #333;
+}
+header {
+  background: #4CAF50;
+  color: #fff;
+  text-align: center;
+  padding: 1rem;
+}
+.container {
+  max-width: 500px;
+  margin: 2rem auto;
+  background: #fff;
+  border-radius: 10px;
+  padding: 1.5rem;
+  box-shadow: 0 4px 8px rgba(0,0,0,.1);
+}
+h2 { margin-top: 0; }
+form input, form select, form button {
+  width: 100%;
+  padding: .6rem;
+  margin: .5rem 0;
+  border-radius: 5px;
+  border: 1px solid #ddd;
+}
+form button {
+  background: #4CAF50;
+  color: #fff;
+  border: none;
+  cursor: pointer;
+  font-weight: bold;
+}
+form button:hover { background: #45a049; }
+.balance {
+  text-align: center;
+  margin: 1rem 0;
+  font-size: 1.2rem;
+  font-weight: bold;
+}
+ul { list-style: none; padding: 0; }
+li {
+  background: #f9f9f9;
+  margin: .5rem 0;
+  padding: .7rem;
+  border-left: 5px solid;
+  display: flex;
+  justify-content: space-between;
+}
+li.ingreso { border-color: #4CAF50; }
+li.gasto { border-color: #f44336; }
+
+/* ✅ estilos para botón eliminar */
+li span button.eliminar {
+  background: transparent;
+  border: 0;
+  font-size: 1rem;
+  margin-left: .5rem;
+  cursor: pointer;
+}
+li span button.eliminar:hover {
+  transform: scale(1.1);
+  color: red;
+}
