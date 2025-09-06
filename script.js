@@ -5,10 +5,10 @@ const tipo = document.getElementById("tipo");
 const categoria = document.getElementById("categoria");
 const lista = document.getElementById("lista");
 const saldoEl = document.getElementById("saldo");
-const filtroFecha = document.getElementById("filtro-fecha"); // ✅ campo para Flatpickr
+const btnFecha = document.getElementById("btn-fecha"); // ✅ botón de calendario
 
 // ✅ Tu Web App (Apps Script)
-const API_URL = "https://script.google.com/macros/s/AKfycbyPkz8A_cX-7G6m6sA5yqXTAmd1ci8xAxQ3A2zWjbDLmfWIJRwne16oXWZCE4cH9cbu/exec";
+const API_URL = "AQUÍ_VA_TU_URL_DE_GOOGLE_APPS_SCRIPT";
 
 // Proxy para GET (lectura de datos con CORS)
 const GET_PROXY = "https://api.allorigins.win/raw?url=";
@@ -118,17 +118,20 @@ form.addEventListener("submit", (e) => {
 });
 
 // --- Filtro con calendario (Flatpickr en modo rango) ---
-if (filtroFecha) {
-  flatpickr(filtroFecha, {
+if (btnFecha) {
+  flatpickr(btnFecha, {
     mode: "range",
     dateFormat: "d/m/Y",
-    allowInput: true,
+    allowInput: false,
     clickOpens: true,
     onChange: function (selectedDates) {
       if (selectedDates.length === 2) {
         filtrarPorRango(selectedDates[0], selectedDates[1]);
+        // ✅ Cambiar texto del botón al rango
+        btnFecha.textContent = "📅 " + selectedDates.map(d => d.toLocaleDateString("es-ES")).join(" - ");
       } else {
         mostrarTodo();
+        btnFecha.textContent = "📅 Seleccionar rango";
       }
     }
   });
