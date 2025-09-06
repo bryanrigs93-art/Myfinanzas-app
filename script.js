@@ -57,7 +57,8 @@ function crearMovimiento(item) {
     }).catch(err => console.error("❌ Error eliminando:", err));
   });
 
-  lista.appendChild(li);
+  // ✅ Mostrar más reciente arriba
+  lista.prepend(li);
 }
 
 // --- Cargar datos existentes ---
@@ -69,7 +70,8 @@ window.addEventListener("DOMContentLoaded", () => {
       lista.innerHTML = "";
       saldo = 0;
 
-      data.forEach(item => {
+      // ✅ Mostrar más recientes primero
+      data.reverse().forEach(item => {
         const amount = parseMonto(item.monto);
         crearMovimiento(item);
         saldo = item.tipo === "ingreso" ? saldo + amount : saldo - amount;
@@ -94,7 +96,7 @@ form.addEventListener("submit", (e) => {
     return;
   }
 
-  // ✅ Fecha automática
+  // ✅ Fecha automática (dd/MM/yyyy)
   const fecha = new Date().toLocaleDateString("es-ES");
 
   const item = { fecha, descripcion: desc, monto: amount, categoria: cat, tipo: tipoMov };
@@ -120,7 +122,8 @@ if (filtroFecha) {
   flatpickr(filtroFecha, {
     mode: "range",
     dateFormat: "d/m/Y",
-    allowInput: false,
+    allowInput: true,
+    clickOpens: true,
     onChange: function (selectedDates) {
       if (selectedDates.length === 2) {
         filtrarPorRango(selectedDates[0], selectedDates[1]);

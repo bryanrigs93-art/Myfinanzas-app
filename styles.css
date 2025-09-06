@@ -19,12 +19,14 @@ header {
   box-shadow: 0 4px 8px rgba(0,0,0,.1);
 }
 h2 { margin-top: 0; }
-form input, form select, form button {
+form input, form select, form button, #filtro-fecha {
   width: 100%;
   padding: .6rem;
   margin: .5rem 0;
   border-radius: 5px;
   border: 1px solid #ddd;
+  font-size: 1rem;
+  box-sizing: border-box;
 }
 form button {
   background: #4CAF50;
@@ -51,8 +53,6 @@ li {
 }
 li.ingreso { border-color: #4CAF50; }
 li.gasto { border-color: #f44336; }
-
-/* ✅ estilos para botón eliminar */
 li span button.eliminar {
   background: transparent;
   border: 0;
