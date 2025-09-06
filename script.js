@@ -5,7 +5,7 @@ const tipo = document.getElementById("tipo");
 const categoria = document.getElementById("categoria");
 const lista = document.getElementById("lista");
 const saldoEl = document.getElementById("saldo");
-const filtroFecha = document.getElementById("filtro-fecha"); // ✅ campo para Flatpickr
+const filtroFecha = document.getElementById("filtro-fecha");
 
 // ✅ Tu Web App (Apps Script)
 const API_URL = "https://script.google.com/macros/s/AKfycbyPkz8A_cX-7G6m6sA5yqXTAmd1ci8xAxQ3A2zWjbDLmfWIJRwne16oXWZCE4cH9cbu/exec";
@@ -43,9 +43,10 @@ function crearMovimiento(item) {
     saldoEl.textContent = fmt(saldo);
     li.remove();
 
+    // ✅ Solo mandar eliminar, sin duplicar
     fetch(API_URL, {
       method: "POST",
-      mode: "no-cors",
+      headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
         accion: "eliminar",
         fecha: item.fecha,
@@ -104,9 +105,10 @@ form.addEventListener("submit", (e) => {
   saldo = tipoMov === "ingreso" ? saldo + amount : saldo - amount;
   saldoEl.textContent = fmt(saldo);
 
+  // ✅ Solo guardar, sin interferir con eliminar
   fetch(API_URL, {
     method: "POST",
-    mode: "no-cors",
+    headers: { "Content-Type": "application/json" },
     body: JSON.stringify(item)
   }).catch(err => console.error("❌ Error al guardar:", err));
 
@@ -133,13 +135,13 @@ if (filtroFecha) {
   });
 }
 
-// Mostrar todo (cuando se borra el rango)
+// Mostrar todo
 function mostrarTodo() {
   const items = lista.querySelectorAll("li");
   items.forEach(li => li.style.display = "flex");
 }
 
-// Función de filtrado por rango
+// Filtrar por rango
 function filtrarPorRango(fechaInicio, fechaFin) {
   const items = lista.querySelectorAll("li");
   items.forEach(li => {
@@ -149,12 +151,12 @@ function filtrarPorRango(fechaInicio, fechaFin) {
 
     if (match) {
       const partes = match[1].split("/");
-      const fechaItem = new Date(partes[2], partes[1] - 1, partes[0]); // dd/mm/yyyy → Date
+      const fechaItem = new Date(partes[2], partes[1] - 1, partes[0]);
 
       if (fechaItem >= fechaInicio && fechaItem <= fechaFin) {
-        li.style.display = "flex"; // dentro del rango
+        li.style.display = "flex";
       } else {
-        li.style.display = "none"; // fuera del rango
+        li.style.display = "none";
       }
     }
   });
