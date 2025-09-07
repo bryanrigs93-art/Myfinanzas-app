@@ -13,8 +13,6 @@ const btnReset = document.getElementById("btnReset");
 
 // ✅ URL del Web App de Google Apps Script
 const API_URL = "https://script.google.com/macros/s/AKfycbyPkz8A_cX-7G6m6sA5yqXTAmd1ci8xAxQ3A2zWjbDLmfWIJRwne16oXWZCE4cH9cbu/exec";
-
-// Proxy para GET (lectura con CORS)
 const GET_PROXY = "https://api.allorigins.win/raw?url=";
 
 let saldo = 0;
@@ -33,7 +31,7 @@ function formatFecha(fecha) {
   }
 }
 
-// Renderizar lista con botones de acción
+// Renderizar lista
 function renderMovimientos(data) {
   lista.innerHTML = "";
   saldo = 0;
@@ -45,8 +43,8 @@ function renderMovimientos(data) {
       <span>${formatFecha(item.fecha)} - ${item.descripcion} (${item.categoria})</span>
       <span>
         ${item.tipo === "ingreso" ? "+" : "-"}$${parseFloat(item.monto).toFixed(2)}
-        <button class="edit" data-row="${item.row}">✏️</button>
-        <button class="delete" data-row="${item.row}">❌</button>
+        <button class="edit" data-id="${item.id}">✏️</button>
+        <button class="delete" data-id="${item.id}">❌</button>
       </span>
     `;
     lista.appendChild(li);
@@ -58,23 +56,23 @@ function renderMovimientos(data) {
 
   saldoEl.textContent = saldo.toFixed(2);
 
-  // --- Eventos de borrar
+  // --- Eventos borrar
   document.querySelectorAll(".delete").forEach(btn => {
     btn.addEventListener("click", () => {
-      const row = btn.dataset.row;
+      const id = btn.dataset.id;
       fetch(API_URL, {
         method: "POST",
         mode: "no-cors",
-        body: JSON.stringify({ action: "delete", row: parseInt(row) })
+        body: JSON.stringify({ action: "delete", id })
       });
       btn.closest("li").remove();
     });
   });
 
-  // --- Eventos de editar
+  // --- Eventos editar
   document.querySelectorAll(".edit").forEach(btn => {
     btn.addEventListener("click", () => {
-      const row = btn.dataset.row;
+      const id = btn.dataset.id;
       const nuevoDesc = prompt("Nueva descripción:");
       const nuevoMonto = parseFloat(prompt("Nuevo monto:"));
       const nuevaCat = prompt("Nueva categoría:");
@@ -87,7 +85,7 @@ function renderMovimientos(data) {
         mode: "no-cors",
         body: JSON.stringify({
           action: "edit",
-          row: parseInt(row),
+          id,
           descripcion: nuevoDesc,
           monto: nuevoMonto,
           categoria: nuevaCat,
@@ -142,7 +140,6 @@ form.addEventListener("submit", (e) => {
   saldo = tipoMov === "ingreso" ? saldo + amount : saldo - amount;
   saldoEl.textContent = saldo.toFixed(2);
 
-  // Enviar a Sheets
   fetch(API_URL, {
     method: "POST",
     mode: "no-cors",
@@ -161,7 +158,7 @@ form.addEventListener("submit", (e) => {
   categoria.value = "General";
 });
 
-// --- Filtros por fecha ---
+// --- Filtros ---
 btnFiltrar.addEventListener("click", () => {
   const inicio = fechaInicio.value ? new Date(fechaInicio.value) : null;
   const fin = fechaFin.value ? new Date(fechaFin.value) : null;
