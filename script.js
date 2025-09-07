@@ -54,13 +54,12 @@ function renderMovimientos(data) {
   saldo = 0;
 
   data.slice().reverse().forEach(item => {
-    const idMostrar = (item.id && String(item.id).trim()) || `Fila ${item.row}`;
     const li = document.createElement("li");
     li.classList.add(item.tipo === "gasto" ? "gasto" : "ingreso");
 
     li.innerHTML = `
       <span>
-        <strong>#${idMostrar}</strong> — ${formatFecha(item.fecha)} - ${item.descripcion} (${item.categoria})
+        ${formatFecha(item.fecha)} - ${item.descripcion} (${item.categoria})
       </span>
       <span>
         ${item.tipo === "ingreso" ? "+" : "-"}$${toMoney(item.monto)}
@@ -125,7 +124,7 @@ function renderMovimientos(data) {
 /************ DATA (GET con fallback) ************/
 async function cargar() {
   try {
-    // Intento directo
+    // 1) GET directo
     let r = await fetch(API_URL, { cache: "no-store" });
     if (!r.ok) throw new Error("GET directo falló");
     const data = await r.json();
@@ -133,7 +132,7 @@ async function cargar() {
     renderMovimientos(movimientos);
   } catch (e1) {
     try {
-      // Fallback con proxy
+      // 2) Fallback por proxy
       const url = `${GET_PROXY}${encodeURIComponent(API_URL)}&cb=${Date.now()}`;
       const r2 = await fetch(url);
       const txt = await r2.text();
