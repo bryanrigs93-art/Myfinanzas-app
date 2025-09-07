@@ -6,13 +6,26 @@ const categoria = document.getElementById("categoria");
 const lista = document.getElementById("lista");
 const saldoEl = document.getElementById("saldo");
 
-// ✅ Tu Web App
+// ✅ URL del Web App de Google Apps Script
 const API_URL = "https://script.google.com/macros/s/AKfycbyPkz8A_cX-7G6m6sA5yqXTAmd1ci8xAxQ3A2zWjbDLmfWIJRwne16oXWZCE4cH9cbu/exec";
 
-// Proxy para GET (lectura de datos con CORS)
+// Proxy para GET (lectura con CORS)
 const GET_PROXY = "https://api.allorigins.win/raw?url=";
 
 let saldo = 0;
+
+// Función para formatear fecha corta
+function formatFecha(fecha) {
+  try {
+    return new Date(fecha).toLocaleDateString("es-ES", {
+      day: "2-digit",
+      month: "2-digit",
+      year: "numeric"
+    });
+  } catch {
+    return fecha;
+  }
+}
 
 // --- Cargar datos existentes ---
 window.addEventListener("DOMContentLoaded", () => {
@@ -23,12 +36,13 @@ window.addEventListener("DOMContentLoaded", () => {
       lista.innerHTML = "";
       saldo = 0;
 
-      data.forEach(item => {
+      // ✅ Mostrar primero los más recientes
+      data.reverse().forEach(item => {
         const li = document.createElement("li");
         li.classList.add(item.tipo);
         li.innerHTML = `
-          <span>${item.descripcion} (${item.categoria})</span>
-          <span>${item.tipo === "ingreso" ? "+" : "-"}$${item.monto}</span>
+          <span>${formatFecha(item.fecha)} - ${item.descripcion} (${item.categoria})</span>
+          <span>${item.tipo === "ingreso" ? "+" : "-"}$${parseFloat(item.monto).toFixed(2)}</span>
         `;
         lista.appendChild(li);
 
@@ -56,19 +70,20 @@ form.addEventListener("submit", (e) => {
     return;
   }
 
-  // Pintar en UI
+  // ✅ Crear movimiento con fecha actual y ponerlo arriba
+  const fechaHoy = new Date();
   const li = document.createElement("li");
   li.classList.add(tipoMov);
   li.innerHTML = `
-    <span>${desc} (${cat})</span>
-    <span>${tipoMov === "ingreso" ? "+" : "-"}$${amount}</span>
+    <span>${formatFecha(fechaHoy)} - ${desc} (${cat})</span>
+    <span>${tipoMov === "ingreso" ? "+" : "-"}$${amount.toFixed(2)}</span>
   `;
-  lista.appendChild(li);
+  lista.insertBefore(li, lista.firstChild);
 
   saldo = tipoMov === "ingreso" ? saldo + amount : saldo - amount;
   saldoEl.textContent = saldo.toFixed(2);
 
-  // Enviar a Sheets con no-cors (no podremos leer la respuesta, pero se guarda)
+  // Enviar a Sheets (modo no-cors)
   fetch(API_URL, {
     method: "POST",
     mode: "no-cors",
@@ -86,4 +101,3 @@ form.addEventListener("submit", (e) => {
   tipo.value = "ingreso";
   categoria.value = "General";
 });
-

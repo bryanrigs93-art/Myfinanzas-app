@@ -15,7 +15,8 @@
     <h2>Agregar Movimiento</h2>
     <form id="form">
       <input type="text" id="descripcion" placeholder="Descripción" required>
-      <input type="number" id="monto" placeholder="Monto" required>
+      <!-- ✅ acepta decimales -->
+      <input type="number" id="monto" placeholder="Monto" step="0.01" required>
       <select id="tipo">
         <option value="ingreso">Ingreso</option>
         <option value="gasto">Gasto</option>
@@ -31,7 +32,7 @@
     </form>
 
     <div class="balance">
-      Saldo Actual: $<span id="saldo">0</span>
+      Saldo Actual: $<span id="saldo">0.00</span>
     </div>
 
     <h2>Movimientos</h2>
