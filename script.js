@@ -28,16 +28,13 @@ function formatFecha(fecha) {
       if (!isNaN(d)) {
         return (
           d.toLocaleDateString("es-ES", { day: "2-digit", month: "2-digit", year: "numeric" }) +
-          " " +
-          d.toLocaleTimeString("es-ES", { hour: "2-digit", minute: "2-digit" })
+          " " + d.toLocaleTimeString("es-ES", { hour: "2-digit", minute: "2-digit" })
         );
       }
       return fecha;
     }
     const d2 = new Date(fecha);
-    if (!isNaN(d2)) {
-      return d2.toLocaleDateString("es-ES", { day: "2-digit", month: "2-digit", year: "numeric" });
-    }
+    if (!isNaN(d2)) return d2.toLocaleDateString("es-ES", { day: "2-digit", month: "2-digit", year: "numeric" });
     return String(fecha);
   } catch {
     return String(fecha ?? "");
@@ -58,9 +55,7 @@ function renderMovimientos(data) {
     li.classList.add(item.tipo === "gasto" ? "gasto" : "ingreso");
 
     li.innerHTML = `
-      <span>
-        ${formatFecha(item.fecha)} - ${item.descripcion} (${item.categoria})
-      </span>
+      <span>${formatFecha(item.fecha)} - ${item.descripcion} (${item.categoria})</span>
       <span>
         ${item.tipo === "ingreso" ? "+" : "-"}$${toMoney(item.monto)}
         <button class="edit" data-row="${item.row}">✏️</button>
@@ -86,7 +81,7 @@ function renderMovimientos(data) {
       }).catch(console.error);
 
       btn.closest("li")?.remove();
-      setTimeout(() => cargar(), 500);
+      setTimeout(cargar, 500);
     });
   });
 
@@ -116,7 +111,7 @@ function renderMovimientos(data) {
         })
       }).catch(console.error);
 
-      setTimeout(() => cargar(), 500);
+      setTimeout(cargar, 500);
     });
   });
 }
@@ -124,7 +119,6 @@ function renderMovimientos(data) {
 /************ DATA (GET con fallback) ************/
 async function cargar() {
   try {
-    // 1) GET directo
     let r = await fetch(API_URL, { cache: "no-store" });
     if (!r.ok) throw new Error("GET directo falló");
     const data = await r.json();
@@ -132,7 +126,6 @@ async function cargar() {
     renderMovimientos(movimientos);
   } catch (e1) {
     try {
-      // 2) Fallback por proxy
       const url = `${GET_PROXY}${encodeURIComponent(API_URL)}&cb=${Date.now()}`;
       const r2 = await fetch(url);
       const txt = await r2.text();
@@ -174,7 +167,7 @@ form.addEventListener("submit", (e) => {
     })
   }).catch(err => console.error("❌ Error al guardar:", err));
 
-  setTimeout(() => cargar(), 700);
+  setTimeout(cargar, 700);
 
   descripcion.value = "";
   monto.value = "";
