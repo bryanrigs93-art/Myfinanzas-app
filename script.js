@@ -11,20 +11,18 @@ const fechaFin = document.getElementById("fechaFin");
 const btnFiltrar = document.getElementById("btnFiltrar");
 const btnReset = document.getElementById("btnReset");
 
-// ✅ URL del Web App de Google Apps Script
+// ✅ URL del Web App desplegado en Google Apps Script
 const API_URL = "https://script.google.com/macros/s/AKfycbyPkz8A_cX-7G6m6sA5yqXTAmd1ci8xAxQ3A2zWjbDLmfWIJRwne16oXWZCE4cH9cbu/exec";
 const GET_PROXY = "https://api.allorigins.win/raw?url=";
 
 let saldo = 0;
 let movimientos = [];
 
-// Función para formatear fecha corta
+// Formatear fecha
 function formatFecha(fecha) {
   try {
     return new Date(fecha).toLocaleDateString("es-ES", {
-      day: "2-digit",
-      month: "2-digit",
-      year: "numeric"
+      day: "2-digit", month: "2-digit", year: "numeric"
     });
   } catch {
     return fecha;
@@ -36,7 +34,7 @@ function renderMovimientos(data) {
   lista.innerHTML = "";
   saldo = 0;
 
-  data.reverse().forEach(item => {
+  data.slice().reverse().forEach(item => {
     const li = document.createElement("li");
     li.classList.add(item.tipo);
     li.innerHTML = `
@@ -49,14 +47,15 @@ function renderMovimientos(data) {
     `;
     lista.appendChild(li);
 
-    saldo = item.tipo === "ingreso"
-      ? saldo + parseFloat(item.monto)
-      : saldo - parseFloat(item.monto);
+    const montoNum = parseFloat(item.monto);
+    if (!isNaN(montoNum)) {
+      saldo = item.tipo === "ingreso" ? saldo + montoNum : saldo - montoNum;
+    }
   });
 
   saldoEl.textContent = saldo.toFixed(2);
 
-  // --- Eventos borrar
+  // Eventos borrar
   document.querySelectorAll(".delete").forEach(btn => {
     btn.addEventListener("click", () => {
       const id = btn.dataset.id;
@@ -69,7 +68,7 @@ function renderMovimientos(data) {
     });
   });
 
-  // --- Eventos editar
+  // Eventos editar
   document.querySelectorAll(".edit").forEach(btn => {
     btn.addEventListener("click", () => {
       const id = btn.dataset.id;
@@ -93,24 +92,28 @@ function renderMovimientos(data) {
         })
       });
 
+      // Actualizar en UI rápido
       btn.closest("li").querySelector("span").textContent =
         `${formatFecha(new Date())} - ${nuevoDesc} (${nuevaCat})`;
     });
   });
 }
 
-// --- Cargar datos ---
-window.addEventListener("DOMContentLoaded", () => {
-  fetch(GET_PROXY + encodeURIComponent(API_URL))
-    .then(r => r.text())
-    .then(txt => {
-      movimientos = txt ? JSON.parse(txt) : [];
-      renderMovimientos(movimientos);
-    })
-    .catch(err => console.error("⚠️ Error cargando datos:", err));
-});
+// Cargar desde backend
+async function cargar() {
+  try {
+    const r = await fetch(GET_PROXY + encodeURIComponent(API_URL));
+    const txt = await r.text();
+    movimientos = txt ? JSON.parse(txt) : [];
+    renderMovimientos(movimientos);
+  } catch (err) {
+    console.error("⚠️ Error cargando datos:", err);
+  }
+}
 
-// --- Guardar movimiento ---
+window.addEventListener("DOMContentLoaded", cargar);
+
+// Guardar movimiento
 form.addEventListener("submit", (e) => {
   e.preventDefault();
 
@@ -124,22 +127,6 @@ form.addEventListener("submit", (e) => {
     return;
   }
 
-  const fechaHoy = new Date();
-  const li = document.createElement("li");
-  li.classList.add(tipoMov);
-  li.innerHTML = `
-    <span>${formatFecha(fechaHoy)} - ${desc} (${cat})</span>
-    <span>
-      ${tipoMov === "ingreso" ? "+" : "-"}$${amount.toFixed(2)}
-      <button class="edit">✏️</button>
-      <button class="delete">❌</button>
-    </span>
-  `;
-  lista.insertBefore(li, lista.firstChild);
-
-  saldo = tipoMov === "ingreso" ? saldo + amount : saldo - amount;
-  saldoEl.textContent = saldo.toFixed(2);
-
   fetch(API_URL, {
     method: "POST",
     mode: "no-cors",
@@ -152,13 +139,15 @@ form.addEventListener("submit", (e) => {
     })
   }).catch(err => console.error("❌ Error al guardar:", err));
 
+  setTimeout(() => cargar(), 800);
+
   descripcion.value = "";
   monto.value = "";
   tipo.value = "ingreso";
   categoria.value = "General";
 });
 
-// --- Filtros ---
+// Filtros
 btnFiltrar.addEventListener("click", () => {
   const inicio = fechaInicio.value ? new Date(fechaInicio.value) : null;
   const fin = fechaFin.value ? new Date(fechaFin.value) : null;

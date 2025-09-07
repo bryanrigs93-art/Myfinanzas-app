@@ -21,13 +21,9 @@ header {
   box-shadow: 0 4px 8px rgba(0,0,0,.1);
 }
 
-h2 {
-  margin-top: 0;
-}
+h2 { margin-top: 0; }
 
-form input,
-form select,
-form button {
+form input, form select, form button {
   width: 100%;
   padding: .6rem;
   margin: .5rem 0;
@@ -42,10 +38,7 @@ form button {
   cursor: pointer;
   font-weight: bold;
 }
-
-form button:hover {
-  background: #45a049;
-}
+form button:hover { background: #45a049; }
 
 .balance {
   text-align: center;
@@ -54,10 +47,7 @@ form button:hover {
   font-weight: bold;
 }
 
-ul {
-  list-style: none;
-  padding: 0;
-}
+ul { list-style: none; padding: 0; }
 
 li {
   background: #f9f9f9;
@@ -68,14 +58,8 @@ li {
   justify-content: space-between;
   align-items: center;
 }
-
-li.ingreso {
-  border-color: #4CAF50;
-}
-
-li.gasto {
-  border-color: #f44336;
-}
+li.ingreso { border-color: #4CAF50; }
+li.gasto { border-color: #f44336; }
 
 /* Filtros */
 .filtros {
@@ -85,30 +69,21 @@ li.gasto {
   align-items: center;
   margin-bottom: 1rem;
 }
-
-.filtros label {
-  font-weight: bold;
-}
-
-.filtros input,
-.filtros button {
+.filtros label { font-weight: bold; }
+.filtros input, .filtros button {
   padding: 0.4rem;
   border-radius: 5px;
   border: 1px solid #ccc;
 }
-
 .filtros button {
   background: #4CAF50;
   color: white;
   border: none;
   cursor: pointer;
 }
+.filtros button:hover { background: #45a049; }
 
-.filtros button:hover {
-  background: #45a049;
-}
-
-/* Botones editar/borrar */
+/* Acciones */
 li button {
   margin-left: 5px;
   border: none;
@@ -116,7 +91,4 @@ li button {
   cursor: pointer;
   font-size: 1rem;
 }
-
-li button:hover {
-  transform: scale(1.2);
-}
+li button:hover { transform: scale(1.2); }
