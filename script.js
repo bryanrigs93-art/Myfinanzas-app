@@ -6,6 +6,11 @@ const categoria = document.getElementById("categoria");
 const lista = document.getElementById("lista");
 const saldoEl = document.getElementById("saldo");
 
+const fechaInicio = document.getElementById("fechaInicio");
+const fechaFin = document.getElementById("fechaFin");
+const btnFiltrar = document.getElementById("btnFiltrar");
+const btnReset = document.getElementById("btnReset");
+
 // ✅ URL del Web App de Google Apps Script
 const API_URL = "https://script.google.com/macros/s/AKfycbyPkz8A_cX-7G6m6sA5yqXTAmd1ci8xAxQ3A2zWjbDLmfWIJRwne16oXWZCE4cH9cbu/exec";
 
@@ -13,6 +18,7 @@ const API_URL = "https://script.google.com/macros/s/AKfycbyPkz8A_cX-7G6m6sA5yqXT
 const GET_PROXY = "https://api.allorigins.win/raw?url=";
 
 let saldo = 0;
+let movimientos = []; // Guardamos todos los movimientos
 
 // Función para formatear fecha corta
 function formatFecha(fecha) {
@@ -27,31 +33,35 @@ function formatFecha(fecha) {
   }
 }
 
+// Función para renderizar lista
+function renderMovimientos(data) {
+  lista.innerHTML = "";
+  saldo = 0;
+
+  data.reverse().forEach(item => {
+    const li = document.createElement("li");
+    li.classList.add(item.tipo);
+    li.innerHTML = `
+      <span>${formatFecha(item.fecha)} - ${item.descripcion} (${item.categoria})</span>
+      <span>${item.tipo === "ingreso" ? "+" : "-"}$${parseFloat(item.monto).toFixed(2)}</span>
+    `;
+    lista.appendChild(li);
+
+    saldo = item.tipo === "ingreso"
+      ? saldo + parseFloat(item.monto)
+      : saldo - parseFloat(item.monto);
+  });
+
+  saldoEl.textContent = saldo.toFixed(2);
+}
+
 // --- Cargar datos existentes ---
 window.addEventListener("DOMContentLoaded", () => {
   fetch(GET_PROXY + encodeURIComponent(API_URL))
     .then(r => r.text())
     .then(txt => {
-      const data = txt ? JSON.parse(txt) : [];
-      lista.innerHTML = "";
-      saldo = 0;
-
-      // ✅ Mostrar primero los más recientes
-      data.reverse().forEach(item => {
-        const li = document.createElement("li");
-        li.classList.add(item.tipo);
-        li.innerHTML = `
-          <span>${formatFecha(item.fecha)} - ${item.descripcion} (${item.categoria})</span>
-          <span>${item.tipo === "ingreso" ? "+" : "-"}$${parseFloat(item.monto).toFixed(2)}</span>
-        `;
-        lista.appendChild(li);
-
-        saldo = item.tipo === "ingreso"
-          ? saldo + parseFloat(item.monto)
-          : saldo - parseFloat(item.monto);
-      });
-
-      saldoEl.textContent = saldo.toFixed(2);
+      movimientos = txt ? JSON.parse(txt) : [];
+      renderMovimientos(movimientos);
     })
     .catch(err => console.error("⚠️ Error cargando datos:", err));
 });
@@ -70,7 +80,6 @@ form.addEventListener("submit", (e) => {
     return;
   }
 
-  // ✅ Crear movimiento con fecha actual y ponerlo arriba
   const fechaHoy = new Date();
   const li = document.createElement("li");
   li.classList.add(tipoMov);
@@ -83,7 +92,7 @@ form.addEventListener("submit", (e) => {
   saldo = tipoMov === "ingreso" ? saldo + amount : saldo - amount;
   saldoEl.textContent = saldo.toFixed(2);
 
-  // Enviar a Sheets (modo no-cors)
+  // Enviar a Sheets
   fetch(API_URL, {
     method: "POST",
     mode: "no-cors",
@@ -100,4 +109,26 @@ form.addEventListener("submit", (e) => {
   monto.value = "";
   tipo.value = "ingreso";
   categoria.value = "General";
+});
+
+// --- Filtros por fecha ---
+btnFiltrar.addEventListener("click", () => {
+  const inicio = fechaInicio.value ? new Date(fechaInicio.value) : null;
+  const fin = fechaFin.value ? new Date(fechaFin.value) : null;
+
+  const filtrados = movimientos.filter(item => {
+    const fechaItem = new Date(item.fecha);
+    if (inicio && fechaItem < inicio) return false;
+    if (fin && fechaItem > fin) return false;
+    return true;
+  });
+
+  renderMovimientos(filtrados);
+});
+
+// --- Reset filtros ---
+btnReset.addEventListener("click", () => {
+  fechaInicio.value = "";
+  fechaFin.value = "";
+  renderMovimientos(movimientos);
 });

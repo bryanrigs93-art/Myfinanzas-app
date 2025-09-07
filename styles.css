@@ -76,3 +76,33 @@ li.gasto {
   border-color: #f44336;
 }
 
+/* ✅ Estilos para filtros */
+.filtros {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  align-items: center;
+  margin-bottom: 1rem;
+}
+
+.filtros label {
+  font-weight: bold;
+}
+
+.filtros input,
+.filtros button {
+  padding: 0.4rem;
+  border-radius: 5px;
+  border: 1px solid #ccc;
+}
+
+.filtros button {
+  background: #4CAF50;
+  color: white;
+  border: none;
+  cursor: pointer;
+}
+
+.filtros button:hover {
+  background: #45a049;
+}
