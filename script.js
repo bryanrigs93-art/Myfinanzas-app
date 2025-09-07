@@ -18,7 +18,7 @@ const API_URL = "https://script.google.com/macros/s/AKfycbyPkz8A_cX-7G6m6sA5yqXT
 const GET_PROXY = "https://api.allorigins.win/raw?url=";
 
 let saldo = 0;
-let movimientos = []; // Guardamos todos los movimientos
+let movimientos = [];
 
 // Función para formatear fecha corta
 function formatFecha(fecha) {
@@ -33,7 +33,7 @@ function formatFecha(fecha) {
   }
 }
 
-// Función para renderizar lista
+// Renderizar lista con botones de acción
 function renderMovimientos(data) {
   lista.innerHTML = "";
   saldo = 0;
@@ -43,7 +43,11 @@ function renderMovimientos(data) {
     li.classList.add(item.tipo);
     li.innerHTML = `
       <span>${formatFecha(item.fecha)} - ${item.descripcion} (${item.categoria})</span>
-      <span>${item.tipo === "ingreso" ? "+" : "-"}$${parseFloat(item.monto).toFixed(2)}</span>
+      <span>
+        ${item.tipo === "ingreso" ? "+" : "-"}$${parseFloat(item.monto).toFixed(2)}
+        <button class="edit" data-row="${item.row}">✏️</button>
+        <button class="delete" data-row="${item.row}">❌</button>
+      </span>
     `;
     lista.appendChild(li);
 
@@ -53,9 +57,51 @@ function renderMovimientos(data) {
   });
 
   saldoEl.textContent = saldo.toFixed(2);
+
+  // --- Eventos de borrar
+  document.querySelectorAll(".delete").forEach(btn => {
+    btn.addEventListener("click", () => {
+      const row = btn.dataset.row;
+      fetch(API_URL, {
+        method: "POST",
+        mode: "no-cors",
+        body: JSON.stringify({ action: "delete", row: parseInt(row) })
+      });
+      btn.closest("li").remove();
+    });
+  });
+
+  // --- Eventos de editar
+  document.querySelectorAll(".edit").forEach(btn => {
+    btn.addEventListener("click", () => {
+      const row = btn.dataset.row;
+      const nuevoDesc = prompt("Nueva descripción:");
+      const nuevoMonto = parseFloat(prompt("Nuevo monto:"));
+      const nuevaCat = prompt("Nueva categoría:");
+      const nuevoTipo = prompt("Tipo (ingreso/gasto):", "ingreso");
+
+      if (!nuevoDesc || isNaN(nuevoMonto)) return;
+
+      fetch(API_URL, {
+        method: "POST",
+        mode: "no-cors",
+        body: JSON.stringify({
+          action: "edit",
+          row: parseInt(row),
+          descripcion: nuevoDesc,
+          monto: nuevoMonto,
+          categoria: nuevaCat,
+          tipo: nuevoTipo
+        })
+      });
+
+      btn.closest("li").querySelector("span").textContent =
+        `${formatFecha(new Date())} - ${nuevoDesc} (${nuevaCat})`;
+    });
+  });
 }
 
-// --- Cargar datos existentes ---
+// --- Cargar datos ---
 window.addEventListener("DOMContentLoaded", () => {
   fetch(GET_PROXY + encodeURIComponent(API_URL))
     .then(r => r.text())
@@ -85,7 +131,11 @@ form.addEventListener("submit", (e) => {
   li.classList.add(tipoMov);
   li.innerHTML = `
     <span>${formatFecha(fechaHoy)} - ${desc} (${cat})</span>
-    <span>${tipoMov === "ingreso" ? "+" : "-"}$${amount.toFixed(2)}</span>
+    <span>
+      ${tipoMov === "ingreso" ? "+" : "-"}$${amount.toFixed(2)}
+      <button class="edit">✏️</button>
+      <button class="delete">❌</button>
+    </span>
   `;
   lista.insertBefore(li, lista.firstChild);
 
@@ -97,6 +147,7 @@ form.addEventListener("submit", (e) => {
     method: "POST",
     mode: "no-cors",
     body: JSON.stringify({
+      action: "add",
       descripcion: desc,
       monto: amount,
       categoria: cat,
@@ -104,7 +155,6 @@ form.addEventListener("submit", (e) => {
     })
   }).catch(err => console.error("❌ Error al guardar:", err));
 
-  // Reset form
   descripcion.value = "";
   monto.value = "";
   tipo.value = "ingreso";
@@ -126,7 +176,6 @@ btnFiltrar.addEventListener("click", () => {
   renderMovimientos(filtrados);
 });
 
-// --- Reset filtros ---
 btnReset.addEventListener("click", () => {
   fechaInicio.value = "";
   fechaFin.value = "";
