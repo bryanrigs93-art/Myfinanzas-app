@@ -34,9 +34,9 @@ function formatFecha(fecha) {
       }
       return fecha;
     }
-    const d = new Date(fecha);
-    if (!isNaN(d)) {
-      return d.toLocaleDateString("es-ES", { day: "2-digit", month: "2-digit", year: "numeric" });
+    const d2 = new Date(fecha);
+    if (!isNaN(d2)) {
+      return d2.toLocaleDateString("es-ES", { day: "2-digit", month: "2-digit", year: "numeric" });
     }
     return String(fecha);
   } catch {
@@ -54,7 +54,7 @@ function renderMovimientos(data) {
   saldo = 0;
 
   data.slice().reverse().forEach(item => {
-    const idMostrar = item.id ? String(item.id) : `Fila ${item.row}`;
+    const idMostrar = (item.id && String(item.id).trim()) || `Fila ${item.row}`;
     const li = document.createElement("li");
     li.classList.add(item.tipo === "gasto" ? "gasto" : "ingreso");
 
@@ -71,9 +71,7 @@ function renderMovimientos(data) {
     lista.appendChild(li);
 
     const m = Number(item.monto);
-    if (!isNaN(m)) {
-      saldo = item.tipo === "ingreso" ? saldo + m : saldo - m;
-    }
+    if (!isNaN(m)) saldo = item.tipo === "ingreso" ? saldo + m : saldo - m;
   });
 
   saldoEl.textContent = toMoney(saldo);
@@ -127,13 +125,15 @@ function renderMovimientos(data) {
 /************ DATA (GET con fallback) ************/
 async function cargar() {
   try {
+    // Intento directo
     let r = await fetch(API_URL, { cache: "no-store" });
     if (!r.ok) throw new Error("GET directo falló");
     const data = await r.json();
-    movimientos = data || [];
+    movimientos = Array.isArray(data) ? data : [];
     renderMovimientos(movimientos);
   } catch (e1) {
     try {
+      // Fallback con proxy
       const url = `${GET_PROXY}${encodeURIComponent(API_URL)}&cb=${Date.now()}`;
       const r2 = await fetch(url);
       const txt = await r2.text();
