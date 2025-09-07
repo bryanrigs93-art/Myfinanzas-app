@@ -6,11 +6,10 @@ const categoria = document.getElementById("categoria");
 const lista = document.getElementById("lista");
 const saldoEl = document.getElementById("saldo");
 
-const API_URL = "https://script.google.com/macros/s/AKfycbyPkz8A_cX-7G6m6sA5yqXTAmd1ci8xAxQ3A2zWjbDLmfWIJRwne16oXWZCE4cH9cbu/exec";  // Pega aquí tu URL
+const API_URL = "https://script.google.com/macros/s/AKfycbyPkz8A_cX-7G6m6sA5yqXTAmd1ci8xAxQ3A2zWjbDLmfWIJRwne16oXWZCE4cH9cbu/exec";
 
 let saldo = 0;
 
-// Crear item en UI
 function crearMovimiento(item) {
   const li = document.createElement("li");
   li.classList.add(item.tipo);
@@ -21,7 +20,7 @@ function crearMovimiento(item) {
   lista.prepend(li);
 }
 
-// Cargar datos al iniciar
+// Cargar al iniciar
 window.addEventListener("DOMContentLoaded", () => {
   fetch(API_URL)
     .then(r => r.json())
@@ -41,7 +40,7 @@ window.addEventListener("DOMContentLoaded", () => {
     .catch(err => console.error("⚠️ Error cargando:", err));
 });
 
-// Guardar movimiento
+// Guardar
 form.addEventListener("submit", (e) => {
   e.preventDefault();
 
