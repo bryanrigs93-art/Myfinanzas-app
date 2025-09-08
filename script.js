@@ -1,90 +1,151 @@
-const baseUrl = "https://script.google.com/macros/s/AKfycbyPkz8A_cX-7G6m6sA5yqXTAmd1ci8xAxQ3A2zWjbDLmfWIJRwne16oXWZCE4cH9cbu/exec";
-let itemsCache = [];
+const API_URL = "https://script.google.com/macros/s/AKfycbyPkz8A_cX-7G6m6sA5yqXTAmd1ci8xAxQ3A2zWjbDLmfWIJRwne16oXWZCE4cH9cbu/exec";
+const GET_PROXY = "https://api.allorigins.win/raw?url=";
+
+const form = document.getElementById("form");
+const descripcion = document.getElementById("descripcion");
+const monto = document.getElementById("monto");
+const tipo = document.getElementById("tipo");
+const categoria = document.getElementById("categoria");
+const lista = document.getElementById("lista");
+const saldoEl = document.getElementById("saldo");
+const fechaInicio = document.getElementById("fechaInicio");
+const fechaFin = document.getElementById("fechaFin");
+const btnFiltrar = document.getElementById("btnFiltrar");
+const btnReset = document.getElementById("btnReset");
+
+let saldo = 0;
+let movimientos = [];
+
+function formatFecha(f) {
+  if (!f) return "";
+  const d = new Date(f.replace(" ", "T"));
+  return d.toLocaleDateString("es-ES") + " " + d.toLocaleTimeString("es-ES", { hour: "2-digit", minute: "2-digit" });
+}
+function toMoney(n) {
+  const v = Number(n);
+  return isNaN(v) ? "0.00" : v.toFixed(2);
+}
+
+function renderMovimientos(data) {
+  lista.innerHTML = "";
+  saldo = 0;
+
+  data.slice().reverse().forEach(item => {
+    const li = document.createElement("li");
+    li.classList.add(item.tipo === "gasto" ? "gasto" : "ingreso");
+    li.innerHTML = `
+      <span><strong>Fila ${item.row}</strong> — ${formatFecha(item.fecha)} - ${item.descripcion} (${item.categoria})</span>
+      <span>
+        ${item.tipo === "ingreso" ? "+" : "-"}$${toMoney(item.monto)}
+        <button class="edit" data-row="${item.row}">✏️</button>
+        <button class="delete" data-row="${item.row}">❌</button>
+      </span>`;
+    lista.appendChild(li);
+
+    const m = Number(item.monto);
+    if (!isNaN(m)) {
+      saldo = item.tipo === "ingreso" ? saldo + m : saldo - m;
+    }
+  });
+
+  saldoEl.textContent = toMoney(saldo);
+
+  document.querySelectorAll(".delete").forEach(btn => {
+    btn.addEventListener("click", () => {
+      const row = Number(btn.dataset.row);
+      fetch(API_URL, {
+        method: "POST",
+        mode: "no-cors",
+        body: JSON.stringify({ action: "delete", row })
+      });
+      btn.closest("li")?.remove();
+      setTimeout(() => cargar(), 500);
+    });
+  });
+
+  document.querySelectorAll(".edit").forEach(btn => {
+    btn.addEventListener("click", () => {
+      const row = Number(btn.dataset.row);
+      const item = movimientos.find(x => x.row === row);
+      if (!item) return;
+      const nuevoDesc = prompt("Nueva descripción:", item.descripcion);
+      const nuevoMonto = Number(prompt("Nuevo monto:", item.monto));
+      const nuevaCat = prompt("Nueva categoría:", item.categoria);
+      const nuevoTipo = prompt("Tipo (ingreso/gasto):", item.tipo);
+
+      fetch(API_URL, {
+        method: "POST",
+        mode: "no-cors",
+        body: JSON.stringify({
+          action: "edit", row,
+          descripcion: nuevoDesc,
+          monto: nuevoMonto,
+          categoria: nuevaCat,
+          tipo: nuevoTipo
+        })
+      });
+      setTimeout(() => cargar(), 600);
+    });
+  });
+}
 
 async function cargar() {
   try {
-    const resp = await fetch(baseUrl);
-    if (!resp.ok) throw new Error("HTTP " + resp.status);
-    itemsCache = await resp.json();
-    renderizar(itemsCache);
-  } catch {
-    console.warn("GET directo falló, probando fallback...");
-    const fallback = `https://api.allorigins.win/raw?url=${encodeURIComponent(baseUrl)}`;
-    const resp = await fetch(fallback);
-    itemsCache = await resp.json();
-    renderizar(itemsCache);
+    const url = `${GET_PROXY}${encodeURIComponent(API_URL)}&cb=${Date.now()}`;
+    const r = await fetch(url);
+    const raw = await r.json();
+    movimientos = raw;
+    renderMovimientos(movimientos);
+  } catch (e) {
+    console.error("Error al cargar:", e);
   }
 }
 
-function renderizar(items) {
-  const lista = document.getElementById("transacciones");
-  lista.innerHTML = "";
-  items.forEach(({ row, fecha, descripcion, monto, categoria, tipo }) => {
-    const signo = tipo === "ingreso" ? "+" : "-";
-    const montoStr = Number(monto).toFixed(2);
-    const li = document.createElement("li");
-    li.innerHTML = `
-      <span>${fecha} — ${descripcion} (${categoria}) ${signo}$${montoStr}</span>
-      <button data-row="${row}" onclick="editar(${row})">✏️</button>
-      <button data-row="${row}" onclick="borrar(${row})">❌</button>
-    `;
-    lista.appendChild(li);
-  });
-}
+form.addEventListener("submit", (e) => {
+  e.preventDefault();
+  const desc = descripcion.value.trim();
+  const amount = Number(monto.value);
+  if (!desc || !isFinite(amount) || amount <= 0) {
+    alert("Completa descripción y monto válido");
+    return;
+  }
 
-async function postAction(action, row = null, data = {}) {
-  const payload = { action, row, ...data };
-  await fetch(baseUrl, {
+  fetch(API_URL, {
     method: "POST",
     mode: "no-cors",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(payload)
+    body: JSON.stringify({
+      action: "add",
+      descripcion: desc,
+      monto: amount,
+      categoria: categoria.value,
+      tipo: tipo.value
+    })
   });
-  setTimeout(cargar, 600);
-}
 
-function agregar() {
-  const fecha = document.getElementById("fecha").value;
-  const descripcion = document.getElementById("descripcion").value;
-  const monto = parseFloat(document.getElementById("monto").value);
-  const categoria = document.getElementById("categoria").value;
-  const tipo = document.querySelector('input[name="tipo"]:checked').value;
-  postAction("add", null, { fecha, descripcion, monto, categoria, tipo });
-}
+  setTimeout(() => cargar(), 700);
 
-function editar(row) {
-  const idx = itemsCache.findIndex(i => i.row === row);
-  if (idx === -1) return alert("Fila no encontrada");
-  const item = itemsCache[idx];
-  const nuevaDesc = prompt("Descripción:", item.descripcion);
-  if (nuevaDesc === null) return;
-  postAction("edit", row, {
-    fecha: item.fecha,
-    descripcion: nuevaDesc,
-    monto: item.monto,
-    categoria: item.categoria,
-    tipo: item.tipo
-  });
-}
+  descripcion.value = "";
+  monto.value = "";
+  tipo.value = "ingreso";
+  categoria.value = "General";
+});
 
-function borrar(row) {
-  if (confirm("¿Borrar transacción en fila " + row + "?")) {
-    postAction("delete", row);
-  }
-}
+btnFiltrar.addEventListener("click", () => {
+  const desde = fechaInicio.value ? new Date(fechaInicio.value) : null;
+  const hasta = fechaFin.value ? new Date(fechaFin.value) : null;
 
-function filtrar() {
-  const desde = document.getElementById("fdesde").valueAsDate;
-  const hasta = document.getElementById("fhasta").valueAsDate;
-  const filtrado = itemsCache.filter(i => {
-    const f = new Date(i.fecha);
+  const filtrados = movimientos.filter(item => {
+    const f = new Date(item.fecha.replace(" ", "T"));
     return (!desde || f >= desde) && (!hasta || f <= hasta);
   });
-  renderizar(filtrado);
-}
 
-window.addEventListener("load", () => {
-  cargar();
-  document.getElementById("agregarBtn").onclick = agregar;
-  document.getElementById("filtrarBtn").onclick = filtrar;
+  renderMovimientos(filtrados);
 });
+
+btnReset.addEventListener("click", () => {
+  fechaInicio.value = "";
+  fechaFin.value = "";
+  renderMovimientos(movimientos);
+});
+
+window.addEventListener("DOMContentLoaded", cargar);
