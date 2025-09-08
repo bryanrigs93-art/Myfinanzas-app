@@ -6,6 +6,7 @@ const descripcion = document.getElementById("descripcion");
 const monto = document.getElementById("monto");
 const tipo = document.getElementById("tipo");
 const categoria = document.getElementById("categoria");
+const extra = document.getElementById("extra"); // 👈 nuevo campo
 const lista = document.getElementById("lista");
 const saldoEl = document.getElementById("saldo");
 const fechaInicio = document.getElementById("fechaInicio");
@@ -36,7 +37,7 @@ function renderMovimientos(data) {
     li.classList.add(item.tipo === "gasto" ? "gasto" : "ingreso");
     li.innerHTML = `
       <span>
-        <strong>#${item.id}</strong> — ${formatFecha(item.fecha)} - ${item.descripcion} (${item.categoria})
+        <strong>#${item.id}</strong> — ${formatFecha(item.fecha)} - ${item.descripcion} (${item.categoria}) [${item.extra || ''}]
       </span>
       <span>
         ${item.tipo === "ingreso" ? "+" : "-"}$${toMoney(item.monto)}
@@ -75,6 +76,7 @@ function renderMovimientos(data) {
       const nuevoMonto = Number(prompt("Nuevo monto:", item.monto));
       const nuevaCat = prompt("Nueva categoría:", item.categoria);
       const nuevoTipo = prompt("Tipo (ingreso/gasto):", item.tipo);
+      const nuevoExtra = prompt("Nueva nota:", item.extra);
 
       fetch(API_URL, {
         method: "POST",
@@ -84,7 +86,8 @@ function renderMovimientos(data) {
           descripcion: nuevoDesc,
           monto: nuevoMonto,
           categoria: nuevaCat,
-          tipo: nuevoTipo
+          tipo: nuevoTipo,
+          extra: nuevoExtra
         })
       });
       setTimeout(() => cargar(), 600);
@@ -121,7 +124,8 @@ form.addEventListener("submit", (e) => {
       descripcion: desc,
       monto: amount,
       categoria: categoria.value,
-      tipo: tipo.value
+      tipo: tipo.value,
+      extra: extra.value
     })
   });
 
@@ -131,6 +135,7 @@ form.addEventListener("submit", (e) => {
   monto.value = "";
   tipo.value = "ingreso";
   categoria.value = "General";
+  extra.value = ""; // limpiar campo nuevo
 });
 
 btnFiltrar.addEventListener("click", () => {
