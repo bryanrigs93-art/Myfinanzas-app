@@ -21,6 +21,7 @@ function formatFecha(f) {
   const d = new Date(f.replace(" ", "T"));
   return d.toLocaleDateString("es-ES") + " " + d.toLocaleTimeString("es-ES", { hour: "2-digit", minute: "2-digit" });
 }
+
 function toMoney(n) {
   const v = Number(n);
   return isNaN(v) ? "0.00" : v.toFixed(2);
@@ -34,11 +35,13 @@ function renderMovimientos(data) {
     const li = document.createElement("li");
     li.classList.add(item.tipo === "gasto" ? "gasto" : "ingreso");
     li.innerHTML = `
-      <span><strong>Fila ${item.row}</strong> — ${formatFecha(item.fecha)} - ${item.descripcion} (${item.categoria})</span>
+      <span>
+        <strong>#${item.id}</strong> — ${formatFecha(item.fecha)} - ${item.descripcion} (${item.categoria})
+      </span>
       <span>
         ${item.tipo === "ingreso" ? "+" : "-"}$${toMoney(item.monto)}
-        <button class="edit" data-row="${item.row}">✏️</button>
-        <button class="delete" data-row="${item.row}">❌</button>
+        <button class="edit" data-id="${item.id}">✏️</button>
+        <button class="delete" data-id="${item.id}">❌</button>
       </span>`;
     lista.appendChild(li);
 
@@ -52,11 +55,11 @@ function renderMovimientos(data) {
 
   document.querySelectorAll(".delete").forEach(btn => {
     btn.addEventListener("click", () => {
-      const row = Number(btn.dataset.row);
+      const id = btn.dataset.id;
       fetch(API_URL, {
         method: "POST",
         mode: "no-cors",
-        body: JSON.stringify({ action: "delete", row })
+        body: JSON.stringify({ action: "delete", id })
       });
       btn.closest("li")?.remove();
       setTimeout(() => cargar(), 500);
@@ -65,8 +68,8 @@ function renderMovimientos(data) {
 
   document.querySelectorAll(".edit").forEach(btn => {
     btn.addEventListener("click", () => {
-      const row = Number(btn.dataset.row);
-      const item = movimientos.find(x => x.row === row);
+      const id = btn.dataset.id;
+      const item = movimientos.find(x => x.id === id);
       if (!item) return;
       const nuevoDesc = prompt("Nueva descripción:", item.descripcion);
       const nuevoMonto = Number(prompt("Nuevo monto:", item.monto));
@@ -77,7 +80,7 @@ function renderMovimientos(data) {
         method: "POST",
         mode: "no-cors",
         body: JSON.stringify({
-          action: "edit", row,
+          action: "edit", id,
           descripcion: nuevoDesc,
           monto: nuevoMonto,
           categoria: nuevaCat,
