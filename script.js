@@ -1,32 +1,32 @@
-const baseUrl = "https://script.google.com/macros/s/…/exec"; // tu URL Web App
+const baseUrl = "https://script.google.com/macros/s/AKfycbyPkz8A_cX-7G6m6sA5yqXTAmd1ci8xAxQ3A2zWjbDLmfWIJRwne16oXWZCE4cH9cbu/exec";
+let itemsCache = [];
 
 async function cargar() {
-  let url = baseUrl;
   try {
-    const resp = await fetch(url);
-    if (!resp.ok) throw new Error("HTTP error " + resp.status);
-    const data = await resp.json();
-    renderizar(data);
-  } catch (err) {
-    console.warn("GET directo falló, intentando AllOrigins:", err);
-    const fallback = `https://api.allorigins.win/raw?url=${encodeURIComponent(url)}`;
+    const resp = await fetch(baseUrl);
+    if (!resp.ok) throw new Error("HTTP " + resp.status);
+    itemsCache = await resp.json();
+    renderizar(itemsCache);
+  } catch {
+    console.warn("GET directo falló, probando fallback...");
+    const fallback = `https://api.allorigins.win/raw?url=${encodeURIComponent(baseUrl)}`;
     const resp = await fetch(fallback);
-    const data = await resp.json();
-    renderizar(data);
+    itemsCache = await resp.json();
+    renderizar(itemsCache);
   }
 }
 
 function renderizar(items) {
   const lista = document.getElementById("transacciones");
   lista.innerHTML = "";
-  items.forEach(item => {
-    const monto = parseFloat(item.monto).toFixed(2);
-    const signo = item.tipo === "ingreso" ? "+" : "-";
+  items.forEach(({ row, fecha, descripcion, monto, categoria, tipo }) => {
+    const signo = tipo === "ingreso" ? "+" : "-";
+    const montoStr = Number(monto).toFixed(2);
     const li = document.createElement("li");
     li.innerHTML = `
-      <span>${item.fecha} — ${item.descripcion} (${item.categoria}) ${signo}$${monto}</span>
-      <button data-row="${item.row}" onclick="editar(${item.row})">✏️</button>
-      <button data-row="${item.row}" onclick="borrar(${item.row})">❌</button>
+      <span>${fecha} — ${descripcion} (${categoria}) ${signo}$${montoStr}</span>
+      <button data-row="${row}" onclick="editar(${row})">✏️</button>
+      <button data-row="${row}" onclick="borrar(${row})">❌</button>
     `;
     lista.appendChild(li);
   });
@@ -53,18 +53,18 @@ function agregar() {
 }
 
 function editar(row) {
-  const nuevaDesc = prompt("Nueva descripción:");
-  // ...otros prompts u inputs...
-  if (nuevaDesc !== null) {
-    // usar otros valores desde inputs o prompts
-    postAction("edit", row, {
-      fecha: new Date().toISOString(),
-      descripcion: nuevaDesc,
-      monto: 0,
-      categoria: "General",
-      tipo: "gasto"
-    });
-  }
+  const idx = itemsCache.findIndex(i => i.row === row);
+  if (idx === -1) return alert("Fila no encontrada");
+  const item = itemsCache[idx];
+  const nuevaDesc = prompt("Descripción:", item.descripcion);
+  if (nuevaDesc === null) return;
+  postAction("edit", row, {
+    fecha: item.fecha,
+    descripcion: nuevaDesc,
+    monto: item.monto,
+    categoria: item.categoria,
+    tipo: item.tipo
+  });
 }
 
 function borrar(row) {
@@ -73,16 +73,14 @@ function borrar(row) {
   }
 }
 
-// Filtros (ejemplo sencillo)
 function filtrar() {
-  const desde = new Date(document.getElementById("fdesde").value);
-  const hasta = new Date(document.getElementById("fhasta").value);
-  // Asume que cargar() y renderizar() usan variables globales items
-  const filtrados = window.currentItems.filter(item => {
-    const f = new Date(item.fecha);
+  const desde = document.getElementById("fdesde").valueAsDate;
+  const hasta = document.getElementById("fhasta").valueAsDate;
+  const filtrado = itemsCache.filter(i => {
+    const f = new Date(i.fecha);
     return (!desde || f >= desde) && (!hasta || f <= hasta);
   });
-  renderizar(filtrados);
+  renderizar(filtrado);
 }
 
 window.addEventListener("load", () => {
